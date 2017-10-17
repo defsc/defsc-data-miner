@@ -1,4 +1,6 @@
 target/
+build/
 .idea/
 *.iml
 src/main/resources/application.properties
+.gradle/
