@@ -1,0 +1,18 @@
+image: java:8
+
+stages:
+  - build
+
+maven-build:
+  stage: build
+  script: "./mvnw clean package"
+  artifacts:
+    paths:
+      - target/*.jar
+
+gradle-build:
+  stage: build
+  script: "./gradlew build"
+  artifacts:
+    paths:
+      - build/libs/*.jar
