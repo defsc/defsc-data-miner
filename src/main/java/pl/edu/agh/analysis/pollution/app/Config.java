@@ -9,6 +9,8 @@ import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -43,23 +45,24 @@ public class Config {
 
     @Autowired
     private RequestsCounter requestsCounter;
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Scheduled(fixedRate=86400000)
     public void oncePerDay() throws IOException {
-        System.out.println("Once per day scheduled task start");
+        logger.info("Once per day scheduled task start");
         updateSensorList();
         updateAirPollutionMeasurements();
-        System.out.println("Once per day scheduled task end");
+        logger.info("Once per day scheduled task end");
     }
 
     @Scheduled(fixedRate=3600000)
     public void oncePerHour() throws IOException {
-        System.out.println("Once per hour scheduled task start");
+        logger.info("Once per hour scheduled task start");
         Instant now = Instant.now();
         updateWeatherMeasurements(now);
         updateTrafficFlowMeasurements(now);
         System.out.println(requestsCounter);
-        System.out.println("Once per hour scheduled task end");
+        logger.info("Once per hour scheduled task end");
     }
 
     private void updateSensorList() throws IOException {
@@ -93,7 +96,7 @@ public class Config {
 
             if (cursor.size() == 0) {
                 sensors.insert(dbObject);
-                System.out.println(result.toString());
+                logger.debug(result.toString());
             }
         }
     }
@@ -110,7 +113,7 @@ public class Config {
             String longitude = ((BasicDBObject)object.get("location")).getString("longitude");
             String latitude = ((BasicDBObject)object.get("location")).getString("latitude");
 
-            System.out.println(id + " "  +  longitude + " " + latitude);
+            logger.info(id + " "  +  longitude + " " + latitude);
 
             Map<String, String> URLParameters = new HashMap<>();
             URLParameters.put("sensorId", id);
@@ -134,7 +137,7 @@ public class Config {
                 dbObject.put("longitude", longitude);
                 dbObject.put("latitude", latitude);
                 measurements.insert(dbObject);
-                System.out.println(result.toString());
+                logger.debug(result.toString());
             }
 
             try {
@@ -157,7 +160,7 @@ public class Config {
             String longitude = ((BasicDBObject)object.get("location")).getString("longitude");
             String latitude = ((BasicDBObject)object.get("location")).getString("latitude");
 
-            System.out.println(id + " "  +  longitude + " " + latitude);
+            logger.info(id + " "  +  longitude + " " + latitude);
 
             Map<String, String> URLParameters = new HashMap<>();
             URLParameters.put("lat", latitude);
@@ -203,7 +206,7 @@ public class Config {
             String longitude = ((BasicDBObject)object.get("location")).getString("longitude");
             String latitude = ((BasicDBObject)object.get("location")).getString("latitude");
 
-            System.out.println(id + " "  +  longitude + " " + latitude);
+            logger.info(id + " "  +  longitude + " " + latitude);
 
             String location = latitude + "," + longitude  + "," + 1000;
             Map<String, String> URLParameters = new HashMap<>();
@@ -260,7 +263,7 @@ public class Config {
     }
 
     private JsonElement executeHttpRequest(String url, Map<String, String> headerParameters) throws IOException {
-        System.out.println("Execute request using" + url);
+        logger.info("Execute request using" + url);
         URL obj = new URL(url);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("GET");
@@ -270,8 +273,8 @@ public class Config {
         updateRequestsCounter(url);
 
         int responseCode = con.getResponseCode();
-        System.out.println("\nSending 'GET' request to URL : " + con.getURL().toString());
-        System.out.println("Response Code : " + responseCode);
+        logger.debug("\nSending 'GET' request to URL : " + con.getURL().toString());
+        logger.debug("Response Code : " + responseCode);
 
         JsonElement element = new JsonObject();
 
@@ -282,7 +285,7 @@ public class Config {
         }
 
         con.disconnect();
-        System.out.println("Request has been sent");
+        logger.info("Request has been sent");
         return element;
     }
 
