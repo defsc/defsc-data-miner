@@ -61,12 +61,14 @@ public class Config {
         Instant now = Instant.now();
         updateWeatherMeasurements(now);
         updateTrafficFlowMeasurements(now);
-        System.out.println(requestsCounter);
+        logger.info(requestsCounter.toString());
         logger.info("Once per hour scheduled task end");
     }
 
     private void updateSensorList() throws IOException {
         DBCollection sensors = mongoTemplate.getCollection(environment.getProperty("air.pollution.sensors.collection.name"));
+
+        logger.info("Updating Sensors list");
 
         Map<String, String> URLParameters = new HashMap<>();
         URLParameters.put("southwestLat", environment.getProperty("airly.sensors.south.west.lat"));
@@ -84,6 +86,7 @@ public class Config {
         Map <String, String> headerParameters = new HashMap<>();
         headerParameters.put("apikey", environment.getProperty("airly.apikey"));
 
+        logger.debug(String.format("Sending sensor request to URL %s with header %s", url, headerParameters));
         JsonElement response = executeHttpRequest(url, headerParameters);
         JsonArray results = response.getAsJsonArray();
 
@@ -94,17 +97,24 @@ public class Config {
             whereQuery.put("id", dbObject.get("id"));
             DBCursor cursor = sensors.find(whereQuery);
 
-            if (cursor.size() == 0) {
+            if (wasFoundFirstTime(cursor)) {
+                logger.info("Inserting new sensor into database");
                 sensors.insert(dbObject);
                 logger.debug(result.toString());
             }
         }
     }
 
+    private boolean wasFoundFirstTime(DBCursor cursor) {
+        return cursor.size() == 0;
+    }
+
     private void updateAirPollutionMeasurements() throws IOException {
         DBCollection sensors = mongoTemplate.getCollection(environment.getProperty("air.pollution.sensors.collection.name"));
         DBCollection measurements = mongoTemplate.getCollection(environment.getProperty("air.pullution.measurements.collection.name"));
         DBCursor cursor = sensors.find();
+
+        logger.debug(String.format("Found %d sensors", cursor.size()));
 
         while(cursor.hasNext()) {
             BasicDBObject object= (BasicDBObject) cursor.next();
@@ -113,7 +123,7 @@ public class Config {
             String longitude = ((BasicDBObject)object.get("location")).getString("longitude");
             String latitude = ((BasicDBObject)object.get("location")).getString("latitude");
 
-            logger.info(id + " "  +  longitude + " " + latitude);
+            logger.info(String.format("Getting pollution data for sensor %s (%s:%s)",id, longitude, latitude));
 
             Map<String, String> URLParameters = new HashMap<>();
             URLParameters.put("sensorId", id);
@@ -128,8 +138,12 @@ public class Config {
             Map <String, String> headerParameters = new HashMap<>();
             headerParameters.put("apikey", environment.getProperty("airly.apikey"));
 
+            logger.debug(String.format("Sending air pollution measurement request to URL %s with header %s", url, headerParameters));
             JsonElement element = executeHttpRequest(url, headerParameters);
             JsonArray results = element.getAsJsonObject().getAsJsonArray("history");
+
+            int fullMeasures = 0;
+            int measures = 0;
 
             for (JsonElement result  : results) {
                 DBObject dbObject = (DBObject) JSON.parse(result.toString());
@@ -138,7 +152,14 @@ public class Config {
                 dbObject.put("latitude", latitude);
                 measurements.insert(dbObject);
                 logger.debug(result.toString());
+
+                if(!dbObject.get("measurements").toString().equals("{ }")) {
+                    fullMeasures++;
+                }
+                measures++;
             }
+
+            logger.info(String.format("Cached %d measures with %d not-empty values", measures, fullMeasures));
 
             try {
                 Thread.sleep(1200);
@@ -149,18 +170,21 @@ public class Config {
     }
 
     private void updateWeatherMeasurements(Instant now) throws IOException {
-        DBCollection sensors = mongoTemplate.getCollection(environment.getProperty("air.pollution.sensors.collection.name"));
+        DBCollection sensors = mongoTemplate.getCollection(environment.getProperty("air.pollution.sensors.collection.name")); // TODO WHY IS THIS HERE?
         DBCollection weatherMeasurements = mongoTemplate.getCollection(environment.getProperty("weather.measurements.collection.name"));
         DBCursor cursor = sensors.find();
 
+        logger.info("Updating weather measurements");
+
         while(cursor.hasNext()) {
+
             BasicDBObject object= (BasicDBObject) cursor.next();
 
             String id = object.getString("id");
             String longitude = ((BasicDBObject)object.get("location")).getString("longitude");
             String latitude = ((BasicDBObject)object.get("location")).getString("latitude");
 
-            logger.info(id + " "  +  longitude + " " + latitude);
+            logger.info(String.format("Getting weather data for sensor %s (%s:%s)",id, longitude, latitude));
 
             Map<String, String> URLParameters = new HashMap<>();
             URLParameters.put("lat", latitude);
@@ -177,6 +201,8 @@ public class Config {
             Map <String, String> headerParameters = new HashMap<>();
             headerParameters.put("apikey", environment.getProperty("airly.apikey"));
 
+            logger.debug(String.format("Sending weather measurement request to URL %s with header %s", url, headerParameters));
+
             JsonElement element = executeHttpRequest(url, headerParameters);
             DBObject weatherMeasurementDbObject = (DBObject) JSON.parse(element.toString());
 
@@ -184,6 +210,8 @@ public class Config {
             weatherMeasurementDbObject.put("longitude", longitude);
             weatherMeasurementDbObject.put("latitude", latitude);
 
+            logger.info("Inserting weather data");
+            logger.debug(String.format("Inserted weather data is %s", weatherMeasurementDbObject.toString()));
             weatherMeasurements.insert(weatherMeasurementDbObject);
 
             try {
@@ -199,6 +227,8 @@ public class Config {
         DBCollection trafficMeasurements = mongoTemplate.getCollection(environment.getProperty("traffic.measurements.collection.name"));
         DBCursor cursor = sensors.find();
 
+        logger.info("Updating traffic measurements");
+
         while(cursor.hasNext()) {
             BasicDBObject object= (BasicDBObject) cursor.next();
 
@@ -206,7 +236,7 @@ public class Config {
             String longitude = ((BasicDBObject)object.get("location")).getString("longitude");
             String latitude = ((BasicDBObject)object.get("location")).getString("latitude");
 
-            logger.info(id + " "  +  longitude + " " + latitude);
+            logger.info(String.format("Getting traffic data for sensor %s (%s:%s)",id, longitude, latitude));
 
             String location = latitude + "," + longitude  + "," + 1000;
             Map<String, String> URLParameters = new HashMap<>();
@@ -222,6 +252,8 @@ public class Config {
             );
 
             Map <String, String> headerParameters = new HashMap<>();
+
+            logger.debug(String.format("Sending traffic measurement request to URL %s with header %s", url, headerParameters));
             JsonElement element = executeHttpRequest(url, headerParameters);
             DBObject trafficMeasurementDbObject = (DBObject) JSON.parse(element.toString());
 
@@ -229,6 +261,8 @@ public class Config {
             trafficMeasurementDbObject.put("longitude", longitude);
             trafficMeasurementDbObject.put("latitude", latitude);
 
+            logger.info("Inserting traffic data");
+            logger.debug(String.format("Inserted traffic data is %s", trafficMeasurementDbObject.toString()));
             trafficMeasurements.insert(trafficMeasurementDbObject);
 
             try {
@@ -263,7 +297,7 @@ public class Config {
     }
 
     private JsonElement executeHttpRequest(String url, Map<String, String> headerParameters) throws IOException {
-        logger.info("Execute request using" + url);
+        logger.debug("Execute request using " + url);
         URL obj = new URL(url);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("GET");
@@ -285,7 +319,7 @@ public class Config {
         }
 
         con.disconnect();
-        logger.info("Request has been sent");
+        logger.debug("Request has been sent");
         return element;
     }
 
