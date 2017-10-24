@@ -139,9 +139,13 @@ public class Config {
             Map <String, String> headerParameters = new HashMap<>();
             headerParameters.put("apikey", environment.getProperty("airly.apikey"));
 
+            logger.debug(String.format("Sending air pollution measurement request to URL %s with header %s", url, headerParameters));
             JsonElement element = executeHttpRequest(url, headerParameters);
             JsonArray results = element.getAsJsonObject().getAsJsonArray("history");
             logger.info(String.format("Measurements for last %d hours have been received fro sensor %s", results.size(), id));
+
+            int fullMeasures = 0;
+            int measures = 0;
 
             int fullMeasures = 0;
             int measures = 0;
@@ -171,7 +175,7 @@ public class Config {
     }
 
     private void updateWeatherMeasurements(Instant now) throws IOException {
-        DBCollection sensors = mongoTemplate.getCollection(environment.getProperty("air.pollution.sensors.collection.name"));
+        DBCollection sensors = mongoTemplate.getCollection(environment.getProperty("air.pollution.sensors.collection.name")); // TODO WHY IS THIS HERE?
         DBCollection weatherMeasurements = mongoTemplate.getCollection(environment.getProperty("weather.measurements.collection.name"));
         DBCursor cursor = sensors.find();
 
@@ -202,6 +206,8 @@ public class Config {
             Map <String, String> headerParameters = new HashMap<>();
             headerParameters.put("apikey", environment.getProperty("airly.apikey"));
 
+            logger.debug(String.format("Sending weather measurement request to URL %s with header %s", url, headerParameters));
+
             JsonElement element = executeHttpRequest(url, headerParameters);
             DBObject weatherMeasurementDbObject = (DBObject) JSON.parse(element.toString());
 
@@ -209,6 +215,8 @@ public class Config {
             weatherMeasurementDbObject.put("longitude", longitude);
             weatherMeasurementDbObject.put("latitude", latitude);
 
+            logger.info("Inserting weather data");
+            logger.debug(String.format("Inserted weather data is %s", weatherMeasurementDbObject.toString()));
             weatherMeasurements.insert(weatherMeasurementDbObject);
             logger.info(String.format("Inserted weather data from sensor %s:%s", id, weatherMeasurementDbObject.toString());
 
