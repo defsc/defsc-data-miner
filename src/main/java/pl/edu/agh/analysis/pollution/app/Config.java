@@ -19,6 +19,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import pl.edu.agh.analysis.pollution.utils.RequestsCounter;
+import sun.net.www.protocol.https.HttpsURLConnectionImpl;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -49,20 +50,20 @@ public class Config {
 
     @Scheduled(fixedRate=86400000)
     public void oncePerDay() throws IOException {
-        logger.info("Once per day scheduled task start");
+        logger.info("Starting tasks scheduled for once per day");
         updateSensorList();
         updateAirPollutionMeasurements();
-        logger.info("Once per day scheduled task end");
+        logger.info("Finished tasks scheduled for once per day");
     }
 
     @Scheduled(fixedRate=3600000)
     public void oncePerHour() throws IOException {
-        logger.info("Once per hour scheduled task start");
+        logger.info("Starting tasks scheduled for once per hour");
         Instant now = Instant.now();
         updateWeatherMeasurements(now);
         updateTrafficFlowMeasurements(now);
         logger.info(requestsCounter.toString());
-        logger.info("Once per hour scheduled task end");
+        logger.info("Finished tasks scheduled for once per hour");
     }
 
     private void updateSensorList() throws IOException {
@@ -98,9 +99,9 @@ public class Config {
             DBCursor cursor = sensors.find(whereQuery);
 
             if (wasFoundFirstTime(cursor)) {
-                logger.info("Inserting new sensor into database");
+                logger.info(String.format("Inserting new sensor into database of id %d", dbObject.get("id")));
                 sensors.insert(dbObject);
-                logger.debug(result.toString());
+                logger.debug(String.format("New sensor %s for %s", dbObject.get("id"), dbObject.toString()));
             }
         }
     }
@@ -114,7 +115,7 @@ public class Config {
         DBCollection measurements = mongoTemplate.getCollection(environment.getProperty("air.pullution.measurements.collection.name"));
         DBCursor cursor = sensors.find();
 
-        logger.debug(String.format("Found %d sensors", cursor.size()));
+        logger.info(String.format("Updating air pollution measurement for %d sensors", cursor.size()));
 
         while(cursor.hasNext()) {
             BasicDBObject object= (BasicDBObject) cursor.next();
@@ -138,9 +139,9 @@ public class Config {
             Map <String, String> headerParameters = new HashMap<>();
             headerParameters.put("apikey", environment.getProperty("airly.apikey"));
 
-            logger.debug(String.format("Sending air pollution measurement request to URL %s with header %s", url, headerParameters));
             JsonElement element = executeHttpRequest(url, headerParameters);
             JsonArray results = element.getAsJsonObject().getAsJsonArray("history");
+            logger.info(String.format("Measurements for last %d hours have been received fro sensor %s", results.size(), id));
 
             int fullMeasures = 0;
             int measures = 0;
@@ -151,15 +152,15 @@ public class Config {
                 dbObject.put("longitude", longitude);
                 dbObject.put("latitude", latitude);
                 measurements.insert(dbObject);
-                logger.debug(result.toString());
+                logger.debug("Inserted data from sensor %s: %s", id, dbObject.toString());
 
-                if(!dbObject.get("measurements").toString().equals("{ }")) {
-                    fullMeasures++;
-                }
+//                if(dbObject.get("measurements").size() != 0) {
+//                    fullMeasures++;
+//                }
                 measures++;
             }
 
-            logger.info(String.format("Cached %d measures with %d not-empty values", measures, fullMeasures));
+            logger.info(String.format("%d measures with %d not-empty values was inserted into database", measures, fullMeasures));
 
             try {
                 Thread.sleep(1200);
@@ -170,7 +171,7 @@ public class Config {
     }
 
     private void updateWeatherMeasurements(Instant now) throws IOException {
-        DBCollection sensors = mongoTemplate.getCollection(environment.getProperty("air.pollution.sensors.collection.name")); // TODO WHY IS THIS HERE?
+        DBCollection sensors = mongoTemplate.getCollection(environment.getProperty("air.pollution.sensors.collection.name"));
         DBCollection weatherMeasurements = mongoTemplate.getCollection(environment.getProperty("weather.measurements.collection.name"));
         DBCursor cursor = sensors.find();
 
@@ -201,8 +202,6 @@ public class Config {
             Map <String, String> headerParameters = new HashMap<>();
             headerParameters.put("apikey", environment.getProperty("airly.apikey"));
 
-            logger.debug(String.format("Sending weather measurement request to URL %s with header %s", url, headerParameters));
-
             JsonElement element = executeHttpRequest(url, headerParameters);
             DBObject weatherMeasurementDbObject = (DBObject) JSON.parse(element.toString());
 
@@ -210,9 +209,8 @@ public class Config {
             weatherMeasurementDbObject.put("longitude", longitude);
             weatherMeasurementDbObject.put("latitude", latitude);
 
-            logger.info("Inserting weather data");
-            logger.debug(String.format("Inserted weather data is %s", weatherMeasurementDbObject.toString()));
             weatherMeasurements.insert(weatherMeasurementDbObject);
+            logger.info(String.format("Inserted weather data from sensor %s:%s", id, weatherMeasurementDbObject.toString());
 
             try {
                 Thread.sleep(1200);
@@ -297,7 +295,6 @@ public class Config {
     }
 
     private JsonElement executeHttpRequest(String url, Map<String, String> headerParameters) throws IOException {
-        logger.debug("Execute request using " + url);
         URL obj = new URL(url);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("GET");
@@ -306,9 +303,9 @@ public class Config {
 
         updateRequestsCounter(url);
 
+        logger.debug("Sending 'GET' request to URL : " + con.getURL().toString());
+        logger.debug("Connection info:" + "header:"+con.getHeaderFields().keySet().toString() + "|cipher" + ((HttpsURLConnectionImpl) con).getCipherSuite().toString() + "|" + "resp:" + con.getResponseMessage());
         int responseCode = con.getResponseCode();
-        logger.debug("\nSending 'GET' request to URL : " + con.getURL().toString());
-        logger.debug("Response Code : " + responseCode);
 
         JsonElement element = new JsonObject();
 
@@ -319,7 +316,7 @@ public class Config {
         }
 
         con.disconnect();
-        logger.debug("Request has been sent");
+        logger.debug("url:" + url + "|resp:" + element + "|respCode:" + responseCode );
         return element;
     }
 
