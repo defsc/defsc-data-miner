@@ -124,7 +124,7 @@ public class Config {
             String longitude = ((BasicDBObject)object.get("location")).getString("longitude");
             String latitude = ((BasicDBObject)object.get("location")).getString("latitude");
 
-            logger.info(String.format("Getting pollution data for sensor %s (%s:%s)",id, longitude, latitude));
+            logger.info(String.format("Getting history of measurements for sensor %s (%s:%s)",id, longitude, latitude));
 
             Map<String, String> URLParameters = new HashMap<>();
             URLParameters.put("sensorId", id);
@@ -142,10 +142,7 @@ public class Config {
             logger.debug(String.format("Sending air pollution measurement request to URL %s with header %s", url, headerParameters));
             JsonElement element = executeHttpRequest(url, headerParameters);
             JsonArray results = element.getAsJsonObject().getAsJsonArray("history");
-            logger.info(String.format("Measurements for last %d hours have been received fro sensor %s", results.size(), id));
-
-            int fullMeasures = 0;
-            int measures = 0;
+            logger.info(String.format("Measurements for last %d hours have been received from sensor %s", results.size(), id));
 
             int fullMeasures = 0;
             int measures = 0;
@@ -158,9 +155,9 @@ public class Config {
                 measurements.insert(dbObject);
                 logger.debug("Inserted data from sensor %s: %s", id, dbObject.toString());
 
-//                if(dbObject.get("measurements").size() != 0) {
-//                    fullMeasures++;
-//                }
+                if(!dbObject.get("measurements").toString().equals("{ }")) {
+                    fullMeasures++;
+                }
                 measures++;
             }
 
@@ -175,7 +172,7 @@ public class Config {
     }
 
     private void updateWeatherMeasurements(Instant now) throws IOException {
-        DBCollection sensors = mongoTemplate.getCollection(environment.getProperty("air.pollution.sensors.collection.name")); // TODO WHY IS THIS HERE?
+        DBCollection sensors = mongoTemplate.getCollection(environment.getProperty("air.pollution.sensors.collection.name"));
         DBCollection weatherMeasurements = mongoTemplate.getCollection(environment.getProperty("weather.measurements.collection.name"));
         DBCursor cursor = sensors.find();
 
@@ -218,7 +215,7 @@ public class Config {
             logger.info("Inserting weather data");
             logger.debug(String.format("Inserted weather data is %s", weatherMeasurementDbObject.toString()));
             weatherMeasurements.insert(weatherMeasurementDbObject);
-            logger.info(String.format("Inserted weather data from sensor %s:%s", id, weatherMeasurementDbObject.toString());
+            logger.info(String.format("Inserted weather data from sensor %s:%s", id, weatherMeasurementDbObject.toString()));
 
             try {
                 Thread.sleep(1200);
