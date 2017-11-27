@@ -1,9 +1,21 @@
 package pl.edu.agh.defsc.entity;
 
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+@Document
 public class Address {
+
+    @Field("country")
     private String country;
+
+    @Field("locality")
     private String region;
+
+    @Field("route")
     private String streetName;
+
+    @Field("streetNumber")
     private String streetNumber;
 
     public Address(String country, String region, String streetName, String streetNumber) {

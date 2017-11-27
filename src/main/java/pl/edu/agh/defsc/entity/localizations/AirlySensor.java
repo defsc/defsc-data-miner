@@ -1,16 +1,31 @@
 package pl.edu.agh.defsc.entity.localizations;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 import pl.edu.agh.defsc.entity.Address;
 import pl.edu.agh.defsc.entity.GeoPoint;
 
-public class AirlyLocalizationOfMeasurements extends LocalizationOfMeasurements<Integer> {
+@Document(collection = "${air.pollution.sensors.collection.name}")
+public class AirlySensor implements LocalizationOfMeasurements {
+    @Id
+    private String id;
+
+    @Field("address")
     private Address address;
+
+    @Field("name")
     private String name;
-    // TO-DO replace with enum
+
+    @Field("vendor")
     private String vendor;
 
-    public AirlyLocalizationOfMeasurements(Integer id, GeoPoint geoPoint) {
-        super(id, geoPoint);
+    @Field("location")
+    private GeoPoint localization;
+
+    public AirlySensor(String id, GeoPoint localization) {
+        this.id = id;
+        this.localization = localization;
     }
 
     public Address getAddress() {
@@ -21,12 +36,18 @@ public class AirlyLocalizationOfMeasurements extends LocalizationOfMeasurements<
         this.address = address;
     }
 
-    public GeoPoint getLocation() {
-        return super.getGeoPoint();
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public GeoPoint getLocalization() {
+        return localization;
     }
 
     public void setLocation(GeoPoint location) {
-        super.setGeoPoint(location);
+        this.localization = localization;
     }
 
     public String getName() {
@@ -47,9 +68,9 @@ public class AirlyLocalizationOfMeasurements extends LocalizationOfMeasurements<
 
     @Override
     public String toString() {
-        return "AirlyLocalizationOfMeasurements{" +
+        return "AirlySensor{" +
                 "address=" + address +
-                ", location=" + super.getGeoPoint() +
+                ", location=" + localization +
                 ", name='" + name + '\'' +
                 ", vendor='" + vendor + '\'' +
                 '}';
