@@ -1,14 +1,16 @@
-package pl.edu.agh.defsc.ws.requests.templates;
+package pl.edu.agh.defsc.ws.requests.templates.impl;
 
 import jdk.incubator.http.HttpRequest;
 import org.springframework.core.env.Environment;
+import pl.edu.agh.defsc.entity.localizations.LocalizationOfMeasurements;
+import pl.edu.agh.defsc.ws.requests.templates.WSHttpGetTemplate;
 
 
-public class HERETrafficHttpGetTemplate {
+public class HereTrafficFlowMeasurementHttpGetTemplate implements WSHttpGetTemplate {
     private HttpGetTemplate template;
     private Environment environment;
 
-    public HERETrafficHttpGetTemplate(Environment environment) {
+    public HereTrafficFlowMeasurementHttpGetTemplate(Environment environment) {
         this.environment = environment;
         template = new HttpGetTemplate();
     }
@@ -59,6 +61,10 @@ public class HERETrafficHttpGetTemplate {
         setAppCode(environment.getProperty("here.app_code"));
 
         setAcceptType("application/json");
+    }
+
+    public void customize(LocalizationOfMeasurements lom) {
+        setProx(lom.getLocalization().getLat(), lom.getLocalization().getLon(), 1000.0);
     }
 
     public HttpRequest build() {

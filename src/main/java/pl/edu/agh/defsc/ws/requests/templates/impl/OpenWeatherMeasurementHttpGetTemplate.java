@@ -1,13 +1,15 @@
-package pl.edu.agh.defsc.ws.requests.templates;
+package pl.edu.agh.defsc.ws.requests.templates.impl;
 
 import jdk.incubator.http.HttpRequest;
 import org.springframework.core.env.Environment;
+import pl.edu.agh.defsc.entity.localizations.LocalizationOfMeasurements;
+import pl.edu.agh.defsc.ws.requests.templates.WSHttpGetTemplate;
 
-public class OpenWeatherHttpGetTemplate {
+public class OpenWeatherMeasurementHttpGetTemplate implements WSHttpGetTemplate {
     private HttpGetTemplate template;
     private Environment environment;
 
-    public OpenWeatherHttpGetTemplate(Environment environment) {
+    public OpenWeatherMeasurementHttpGetTemplate(Environment environment) {
         this.environment = environment;
         template = new HttpGetTemplate();
     }
@@ -56,6 +58,11 @@ public class OpenWeatherHttpGetTemplate {
         setAppId(environment.getProperty("open.weather.APPID"));
 
         setAcceptType("application/json");
+    }
+
+    public void customize(LocalizationOfMeasurements lom) {
+        setLat(Double.toString(lom.getLocalization().getLat()));
+        setLon(Double.toString(lom.getLocalization().getLon()));
     }
 
     public HttpRequest build() {

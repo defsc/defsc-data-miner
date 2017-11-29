@@ -1,10 +1,12 @@
-package pl.edu.agh.defsc.ws.requests.templates;
+package pl.edu.agh.defsc.ws.requests.templates.impl;
 
 import jdk.incubator.http.HttpRequest;
 import org.springframework.core.env.Environment;
+import pl.edu.agh.defsc.entity.localizations.LocalizationOfMeasurements;
+import pl.edu.agh.defsc.ws.requests.templates.WSHttpGetTemplate;
 
 
-public class AirlyMeasurementHttpGetTemplate {
+public class AirlyMeasurementHttpGetTemplate implements WSHttpGetTemplate {
     private HttpGetTemplate template;
     private Environment environment;
 
@@ -52,6 +54,10 @@ public class AirlyMeasurementHttpGetTemplate {
 
         setAcceptType("application/json");
         setApiKey(environment.getProperty("airly.apikey"));
+    }
+
+    public void customize(LocalizationOfMeasurements lom) {
+        setSensorId((String) lom.getId());
     }
 
     public HttpRequest build() {

@@ -1,13 +1,13 @@
-package pl.edu.agh.defsc.ws.requests.templates;
+package pl.edu.agh.defsc.ws.requests.templates.impl;
 
 import jdk.incubator.http.HttpRequest;
 import org.springframework.core.env.Environment;
 
-public class AirlySensorsRequestTemplate {
+public class AirlyLocalizationOfMeasurementsRequestTemplate {
     private HttpGetTemplate template;
     private Environment environment;
 
-    public AirlySensorsRequestTemplate(Environment environment) {
+    public AirlyLocalizationOfMeasurementsRequestTemplate(Environment environment) {
         this.environment = environment;
         template = new HttpGetTemplate();
     }

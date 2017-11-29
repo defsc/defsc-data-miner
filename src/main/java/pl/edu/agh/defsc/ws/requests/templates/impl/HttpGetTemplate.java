@@ -1,4 +1,4 @@
-package pl.edu.agh.defsc.ws.requests.templates;
+package pl.edu.agh.defsc.ws.requests.templates.impl;
 
 import jdk.incubator.http.HttpRequest;
 import pl.edu.agh.defsc.ws.utils.URIBuilder;

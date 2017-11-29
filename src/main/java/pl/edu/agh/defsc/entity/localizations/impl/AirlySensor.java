@@ -1,10 +1,11 @@
-package pl.edu.agh.defsc.entity.localizations;
+package pl.edu.agh.defsc.entity.localizations.impl;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import pl.edu.agh.defsc.entity.Address;
 import pl.edu.agh.defsc.entity.GeoPoint;
+import pl.edu.agh.defsc.entity.localizations.LocalizationOfMeasurements;
 
 @Document(collection = "${air.pollution.sensors.collection.name}")
 public class AirlySensor implements LocalizationOfMeasurements {
