@@ -13,6 +13,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import pl.edu.agh.defsc.entity.localizations.impl.AirlySensor;
 import pl.edu.agh.defsc.entity.localizations.impl.WiosSensor;
 import pl.edu.agh.defsc.entity.localizations.impl.WundergroundSensor;
+import pl.edu.agh.defsc.mails.MailingFacade;
 import pl.edu.agh.defsc.ws.RestResourceUpdateTemplate;
 import pl.edu.agh.defsc.ws.deserializers.impl.AirlyLocalizationOfMeasurementsDeserializer;
 import pl.edu.agh.defsc.ws.deserializers.impl.AirlyMeasurementDeserializer;
@@ -47,7 +48,10 @@ public class ScheduledTasks {
     @Autowired
     RestResourceUpdateTemplate processingTemplate;
 
-    @Scheduled(fixedRate = 3600000)
+    @Autowired
+    private MailingFacade mailingFacade;
+
+    @Scheduled(fixedRate = 3600000, initialDelay = 100)
     public void updateAirlyMeasurements()  {
         log.info("Update airly measurements start");
 
@@ -100,9 +104,8 @@ public class ScheduledTasks {
     }
 
     @Scheduled(fixedRate = 3600000, initialDelay = 100)
-    public void updateWundergroundWeatherMeasurements()  {
+    public void updateWundergroundWeatherMeasurements() {
         log.info("Update wunder weather items start");
-
 
 
         DBCollection wwMeasurements = mongoTemplate.getCollection(environment.getProperty("wunderground.measurements.collection.name"));
@@ -112,6 +115,15 @@ public class ScheduledTasks {
         processingTemplate.update(wwMeasurements, template, wsResponseDeserializer, loms, Integer.parseInt(environment.getProperty("wunderground.requests.delay")));
 
         log.info("Update wunder weather items end");
+    }
+
+    @Scheduled(fixedRate = 36000, initialDelay = 30000)
+    public void sendMail() {
+        System.out.println("Send mails start");
+
+        mailingFacade.sendDailyMails();
+
+        System.out.println("Send mails end");
     }
 
     /*

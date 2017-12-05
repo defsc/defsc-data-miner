@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import pl.edu.agh.defsc.ScheduledTasks;
 import pl.edu.agh.defsc.entity.localizations.LocalizationOfMeasurements;
 import pl.edu.agh.defsc.exceptions.ResourceUpdateException;
+import pl.edu.agh.defsc.mails.MailingFacade;
 import pl.edu.agh.defsc.ws.deserializers.WSResponseDeserializer;
 import pl.edu.agh.defsc.ws.requests.templates.WSHttpGetTemplate;
 
@@ -27,6 +28,9 @@ public class RestResourceUpdateTemplate {
     @Autowired
     private HttpClient httpClient;
 
+    @Autowired
+    private MailingFacade mailingFacade;
+
     public void update(DBCollection collection, WSHttpGetTemplate requestTemplate,
                        WSResponseDeserializer deserializer, List<? extends LocalizationOfMeasurements> loms,
                        Integer delay) {
@@ -36,7 +40,9 @@ public class RestResourceUpdateTemplate {
         for (LocalizationOfMeasurements lom : loms) {
             HttpRequest request = buildRequest(requestTemplate, lom);
             try {
+                mailingFacade.handleNewRequest(collection);
                 HttpResponse<String> response = executeRequest(request);
+                mailingFacade.handleNewResponse(response, collection);
                 List<Map> items = deserializeResponse(response, deserializer);
                 addLomIdToItems(items, lom);
                 updateDatabase(items, collection);
