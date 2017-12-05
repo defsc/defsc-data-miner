@@ -5,14 +5,13 @@ import org.springframework.core.env.Environment;
 import pl.edu.agh.defsc.entity.localizations.LocalizationOfMeasurements;
 import pl.edu.agh.defsc.ws.requests.templates.WSHttpGetTemplate;
 
-
-public class AirlyMeasurementHttpGetTemplate implements WSHttpGetTemplate {
+public class WiosMeasurementHttpGetTemplate implements WSHttpGetTemplate {
     private HttpGetTemplate template;
     private Environment environment;
 
-    public AirlyMeasurementHttpGetTemplate(Environment environment) {
+    public WiosMeasurementHttpGetTemplate(Environment environment) {
         this.environment = environment;
-        this.template = new HttpGetTemplate();
+        template = new HttpGetTemplate();
     }
 
     public void setProtocol(String protocol) {
@@ -35,29 +34,23 @@ public class AirlyMeasurementHttpGetTemplate implements WSHttpGetTemplate {
         template.setHeaderParameter(key, value);
     }
 
-    public void setSensorId(String sensorId) {
-        template.setUriParameter("sensorId", sensorId);
-    }
-
     public void setAcceptType(String type) {
         template.setHeaderParameter("Accept", type);
     }
 
-    public void setApiKey(String apiKey) {
-        template.setHeaderParameter("apikey", apiKey);
-    }
+    public void setId(String id) { template.setUriParameter("id",id);}
 
     public void setDefaults() {
-        setProtocol(environment.getProperty("airly.protocol"));
-        setDomain(environment.getProperty("airly.domain"));
-        setPath(environment.getProperty("airly.measurements.path"));
+        setProtocol(environment.getProperty("wios.protocol"));
+        setDomain(environment.getProperty("wios.domain"));
+        setPath(environment.getProperty("wios.path"));
 
+        setUriParameter("param","AQI");
         setAcceptType("application/json");
-        setApiKey(environment.getProperty("airly.apikey"));
     }
 
     public void customize(LocalizationOfMeasurements lom) {
-        setSensorId((String) lom.getId());
+        setId((String)lom.getId());
     }
 
     public HttpRequest build() {

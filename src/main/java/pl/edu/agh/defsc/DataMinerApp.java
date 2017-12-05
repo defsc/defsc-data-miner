@@ -11,7 +11,7 @@ import org.springframework.context.annotation.ComponentScan;
 @ComponentScan("pl.edu.agh.defsc")
 @SpringBootApplication
 public class DataMinerApp {
-    private final static Logger LOGGER = LoggerFactory.getLogger("app.DataMinerApplication");
+    private final static Logger LOGGER = LoggerFactory.getLogger(DataMinerApp.class);
 
     public static void main(String[] args) {
         LOGGER.info("Starting application with arguments %s", args);

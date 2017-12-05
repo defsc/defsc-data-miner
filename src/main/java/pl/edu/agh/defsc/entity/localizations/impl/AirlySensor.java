@@ -7,7 +7,7 @@ import pl.edu.agh.defsc.entity.Address;
 import pl.edu.agh.defsc.entity.GeoPoint;
 import pl.edu.agh.defsc.entity.localizations.LocalizationOfMeasurements;
 
-@Document(collection = "${air.pollution.sensors.collection.name}")
+@Document(collection = "${airly.air.pollution.sensors.collection.name}")
 public class AirlySensor implements LocalizationOfMeasurements {
     @Id
     private String id;

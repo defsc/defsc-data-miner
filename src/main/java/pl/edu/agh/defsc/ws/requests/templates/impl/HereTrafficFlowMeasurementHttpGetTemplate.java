@@ -54,7 +54,7 @@ public class HereTrafficFlowMeasurementHttpGetTemplate implements WSHttpGetTempl
 
     public void setDefaults() {
         setProtocol(environment.getProperty("here.protocol"));
-        setDomain(environment.getProperty("here.host"));
+        setDomain(environment.getProperty("here.domain"));
         setPath(environment.getProperty("here.traffic.flow.path"));
 
         setAppId(environment.getProperty("here.app_id"));

@@ -11,8 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class HereTrafficFlowMeasurementDeserializer implements WSResponseDeserializer {
-
+public class SimpleWSResponseDeserializer implements WSResponseDeserializer {
     @Autowired
     private ObjectMapper mapper;
 

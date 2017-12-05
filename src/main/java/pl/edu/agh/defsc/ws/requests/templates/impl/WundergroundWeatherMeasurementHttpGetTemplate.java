@@ -42,7 +42,7 @@ public class WundergroundWeatherMeasurementHttpGetTemplate implements WSHttpGetT
 
     public void setDefaults() {
         setProtocol(environment.getProperty("wunderground.weather.protocol"));
-        setDomain(environment.getProperty("wunderground.weather.host"));
+        setDomain(environment.getProperty("wunderground.weather.domain"));
 
         setAcceptType("application/json");
     }

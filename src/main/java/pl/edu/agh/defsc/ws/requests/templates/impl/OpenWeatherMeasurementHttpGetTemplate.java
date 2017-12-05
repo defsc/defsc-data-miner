@@ -52,7 +52,7 @@ public class OpenWeatherMeasurementHttpGetTemplate implements WSHttpGetTemplate 
 
     public void setDefaults() {
         setProtocol(environment.getProperty("open.weather.protocol"));
-        setDomain(environment.getProperty("open.weather.host"));
+        setDomain(environment.getProperty("open.weather.domain"));
         setPath(environment.getProperty("open.weather.path"));
 
         setAppId(environment.getProperty("open.weather.APPID"));
