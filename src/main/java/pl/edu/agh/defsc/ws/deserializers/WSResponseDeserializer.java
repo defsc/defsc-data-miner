@@ -1,9 +1,11 @@
 package pl.edu.agh.defsc.ws.deserializers;
 
-import java.io.IOException;
+import jdk.incubator.http.HttpResponse;
+
 import java.util.List;
 import java.util.Map;
 
+
 public interface WSResponseDeserializer {
-    List<Map> deserialize(String WSResponse) throws IOException;
+    public List<Map> deserialize(HttpResponse<byte []> WSResponse);
 }

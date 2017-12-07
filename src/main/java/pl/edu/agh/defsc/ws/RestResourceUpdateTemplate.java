@@ -41,13 +41,13 @@ public class RestResourceUpdateTemplate {
             HttpRequest request = buildRequest(requestTemplate, lom);
             try {
                 mailingFacade.handleNewRequest(collection);
-                HttpResponse<String> response = executeRequest(request);
+                HttpResponse<byte []> response = executeRequest(request);
                 mailingFacade.handleNewResponse(response, collection);
                 List<Map> items = deserializeResponse(response, deserializer);
                 addLomIdToItems(items, lom);
                 updateDatabase(items, collection);
             } catch (ResourceUpdateException e) {
-                log.warn("Processing of resource was interupted {}", e);
+                log.warn("Processing of resource was interupted", e);
             }
             performOverloadProtection(delay);
         }
@@ -59,10 +59,10 @@ public class RestResourceUpdateTemplate {
     }
 
     public HttpResponse executeRequest(HttpRequest request) throws ResourceUpdateException {
-        HttpResponse<String> httpResponse = null;
+        HttpResponse<byte []> httpResponse = null;
         try {
             log.info("Executing http request using {}", request);
-            httpResponse = httpClient.send(request, HttpResponse.BodyHandler.asString());
+            httpResponse = httpClient.send(request, HttpResponse.BodyHandler.asByteArray());
             log.info("Request was executed, reponse status code: {}", httpResponse.statusCode());
         } catch (InterruptedException | IOException e) {
             throw new ResourceUpdateException("Exception during executing http request:" + request, e);
@@ -71,16 +71,8 @@ public class RestResourceUpdateTemplate {
         return httpResponse;
     }
 
-    public List<Map> deserializeResponse(HttpResponse<String> response, WSResponseDeserializer deserializer) throws ResourceUpdateException {
-        List<Map> items = null;
-        String responseBody = response.body();
-        try {
-            items = deserializer.deserialize(responseBody);
-        } catch (IOException e) {
-            throw new ResourceUpdateException("Exception during deserializing http response body:" + responseBody, e);
-        }
-
-        return items;
+    public List<Map> deserializeResponse(HttpResponse<byte []> response, WSResponseDeserializer deserializer) {
+        return deserializer.deserialize(response);
     }
 
     public void addLomIdToItems(List<Map> items, LocalizationOfMeasurements lom) {
@@ -102,10 +94,8 @@ public class RestResourceUpdateTemplate {
             Thread.sleep(delay);
         } catch (InterruptedException e) {
             log.error("Overload delay failed {}", e);
-            throw new RuntimeException("Overload delay failed {}", e);
+            throw new RuntimeException("Overload delay failed", e);
         }
     }
-
-
 }
 

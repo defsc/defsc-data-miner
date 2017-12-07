@@ -17,7 +17,7 @@ public class MailingFacade {
     @Autowired
     private MailsFormatter formatter;
 
-    public void handleNewResponse(HttpResponse<String> httpResponse, DBCollection collection) {
+    public void handleNewResponse(HttpResponse<byte []> httpResponse, DBCollection collection) {
         aggregator.aggregateResponseForCollection(httpResponse, collection);
     }
 

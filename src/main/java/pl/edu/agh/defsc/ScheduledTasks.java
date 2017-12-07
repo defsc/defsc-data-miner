@@ -51,18 +51,19 @@ public class ScheduledTasks {
     @Autowired
     private MailingFacade mailingFacade;
 
-    @Scheduled(fixedRate = 3600000, initialDelay = 100)
+    @Scheduled(fixedRate = 86400000)
     public void updateAirlyMeasurements()  {
         log.info("Update airly measurements start");
 
         DBCollection measurements = mongoTemplate.getCollection(environment.getProperty("airly.air.pullution.measurements.collection.name"));
         AirlyMeasurementHttpGetTemplate template = new AirlyMeasurementHttpGetTemplate(environment);
-        List<AirlySensor> loms = mongoTemplate.findAll(AirlySensor.class, environment.getProperty("airly.air.pollution.sensors.collection.name")).subList(0, 5);
+        List<AirlySensor> loms = mongoTemplate.findAll(AirlySensor.class, environment.getProperty("airly.air.pollution.sensors.collection.name"));
 
         processingTemplate.update(measurements, template, amDeserializer, loms, Integer.parseInt(environment.getProperty("airly.requests.delay")));
 
         log.info("Update airly measurements end");
     }
+
 
     @Scheduled(fixedRate = 3600000)
     public void updateTrafficFLowItems() {
@@ -70,12 +71,14 @@ public class ScheduledTasks {
 
         DBCollection measurements = mongoTemplate.getCollection(environment.getProperty("traffic.measurements.collection.name"));
         HereTrafficFlowMeasurementHttpGetTemplate template = new HereTrafficFlowMeasurementHttpGetTemplate(environment);
-        List<AirlySensor> loms = mongoTemplate.findAll(AirlySensor.class, environment.getProperty("airly.air.pollution.sensors.collection.name")).subList(0, 5);
+        List<AirlySensor> loms = mongoTemplate.findAll(AirlySensor.class, environment.getProperty("airly.air.pollution.sensors.collection.name"));
 
         processingTemplate.update(measurements, template, wsResponseDeserializer, loms, Integer.parseInt(environment.getProperty("here.requests.delay")));
 
-        log.info("Update traffic flow items start");
+        log.info("Update traffic flow items end");
     }
+
+
 
     @Scheduled(fixedRate = 3600000)
     public void updateOpenWeatherMeasurements() {
@@ -83,12 +86,13 @@ public class ScheduledTasks {
 
         DBCollection measurements = mongoTemplate.getCollection(environment.getProperty("weather.measurements.collection.name"));
         OpenWeatherMeasurementHttpGetTemplate template = new OpenWeatherMeasurementHttpGetTemplate(environment);
-        List<AirlySensor> loms = mongoTemplate.findAll(AirlySensor.class, environment.getProperty("airly.air.pollution.sensors.collection.name")).subList(0, 5);
+        List<AirlySensor> loms = mongoTemplate.findAll(AirlySensor.class, environment.getProperty("airly.air.pollution.sensors.collection.name"));
 
         processingTemplate.update(measurements, template, wsResponseDeserializer, loms, Integer.parseInt(environment.getProperty("open.weather.requests.delay")));
 
         log.info("Update open weather items end");
     }
+
 
     @Scheduled(fixedRate = 3600000)
     public void updateWiosMeasurements()  {
@@ -96,28 +100,44 @@ public class ScheduledTasks {
 
         DBCollection wiosMeasurements = mongoTemplate.getCollection(environment.getProperty("wios.air.pullution.measurements.collection.name"));
         WiosMeasurementHttpGetTemplate template = new WiosMeasurementHttpGetTemplate(environment);
-        List<WiosSensor> loms = mongoTemplate.findAll(WiosSensor.class, environment.getProperty("wios.air.pollution.sensors.collection.name")).subList(0, 5);
+        List<WiosSensor> loms = mongoTemplate.findAll(WiosSensor.class, environment.getProperty("wios.air.pollution.sensors.collection.name"));
 
         processingTemplate.update(wiosMeasurements, template, wsResponseDeserializer, loms, Integer.parseInt(environment.getProperty("wios.requests.delay")));
 
         log.info("Update wios measurements items end");
     }
 
+
+
     @Scheduled(fixedRate = 3600000, initialDelay = 100)
-    public void updateWundergroundWeatherMeasurements() {
-        log.info("Update wunder weather items start");
+    public void updateWundergroundWeatherMeasurements_1() {
+        log.info("Update wunder weather items 1 start");
 
 
         DBCollection wwMeasurements = mongoTemplate.getCollection(environment.getProperty("wunderground.measurements.collection.name"));
-        WundergroundWeatherMeasurementHttpGetTemplate template = new WundergroundWeatherMeasurementHttpGetTemplate(environment, environment.getProperty("wunderground.weather.apikey"));
-        List<WundergroundSensor> loms = mongoTemplate.findAll(WundergroundSensor.class, environment.getProperty("wunderground.sensors_1.collection.name")).subList(0, 5);
+        WundergroundWeatherMeasurementHttpGetTemplate template = new WundergroundWeatherMeasurementHttpGetTemplate(environment, environment.getProperty("wunderground.weather.apikey_1"));
+        List<WundergroundSensor> loms = mongoTemplate.findAll(WundergroundSensor.class, environment.getProperty("wunderground.sensors_1.collection.name"));
 
         processingTemplate.update(wwMeasurements, template, wsResponseDeserializer, loms, Integer.parseInt(environment.getProperty("wunderground.requests.delay")));
 
-        log.info("Update wunder weather items end");
+        log.info("Update wunder weather items 1 end");
     }
 
-    @Scheduled(fixedRate = 36000, initialDelay = 30000)
+    @Scheduled(fixedRate = 3600000, initialDelay = 100)
+    public void updateWundergroundWeatherMeasurements_2() {
+        log.info("Update wunder weather items 2 start");
+
+
+        DBCollection wwMeasurements = mongoTemplate.getCollection(environment.getProperty("wunderground.measurements.collection.name"));
+        WundergroundWeatherMeasurementHttpGetTemplate template = new WundergroundWeatherMeasurementHttpGetTemplate(environment, environment.getProperty("wunderground.weather.apikey_2"));
+        List<WundergroundSensor> loms = mongoTemplate.findAll(WundergroundSensor.class, environment.getProperty("wunderground.sensors_2.collection.name"));
+
+        processingTemplate.update(wwMeasurements, template, wsResponseDeserializer, loms, Integer.parseInt(environment.getProperty("wunderground.requests.delay")));
+
+        log.info("Update wunder weather items 2 end");
+    }
+
+    @Scheduled(fixedRate = 14400000, initialDelay = 120000)
     public void sendMail() {
         System.out.println("Send mails start");
 

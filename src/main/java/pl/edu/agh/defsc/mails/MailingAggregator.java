@@ -11,7 +11,7 @@ public class MailingAggregator {
     private Map<String, Integer> requestCounter = new HashMap<>();
     private Map<String, Map<Integer, Integer>> responseAggregation = new HashMap<>();
 
-    public void aggregateResponseForCollection(HttpResponse<String> httpResponse, DBCollection collection) {
+    public void aggregateResponseForCollection(HttpResponse<byte []> httpResponse, DBCollection collection) {
         String collectionName = collection.getName();
 
         if (responseAggregation.containsKey(collectionName)) {
