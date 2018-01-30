@@ -3,6 +3,7 @@ package pl.edu.agh.defsc.ws.requests.templates.impl;
 import jdk.incubator.http.HttpRequest;
 import org.springframework.core.env.Environment;
 import pl.edu.agh.defsc.entity.localizations.LocalizationOfMeasurements;
+import pl.edu.agh.defsc.entity.localizations.impl.WundergroundSensor;
 import pl.edu.agh.defsc.ws.requests.templates.WSHttpGetTemplate;
 
 public class WundergroundWeatherMeasurementHttpGetTemplate implements WSHttpGetTemplate {
@@ -48,11 +49,13 @@ public class WundergroundWeatherMeasurementHttpGetTemplate implements WSHttpGetT
     }
 
     public void customize(LocalizationOfMeasurements lom) {
+        WundergroundSensor wundergroundSensor = (WundergroundSensor) lom;
         String path =
                 environment.getProperty("wunderground.weather.path.first.part") +
                         apikey +
                         environment.getProperty("wunderground.weather.path.second.part") +
-                        lom.getId() + ".json";
+                        wundergroundSensor.getType() + ":" +
+                        wundergroundSensor.getId() + ".json";
 
         setPath(path);
     }
