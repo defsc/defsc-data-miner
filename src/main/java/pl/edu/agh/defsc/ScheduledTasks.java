@@ -11,14 +11,16 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import pl.edu.agh.defsc.entity.localizations.impl.AirlySensor;
-import pl.edu.agh.defsc.entity.localizations.impl.WiosSensor;
 import pl.edu.agh.defsc.entity.localizations.impl.WundergroundSensor;
 import pl.edu.agh.defsc.mails.MailingFacade;
 import pl.edu.agh.defsc.ws.RestResourceUpdateTemplate;
 import pl.edu.agh.defsc.ws.deserializers.impl.AirlyLocalizationOfMeasurementsDeserializer;
 import pl.edu.agh.defsc.ws.deserializers.impl.AirlyMeasurementDeserializer;
 import pl.edu.agh.defsc.ws.deserializers.impl.SimpleWSResponseDeserializer;
-import pl.edu.agh.defsc.ws.requests.templates.impl.*;
+import pl.edu.agh.defsc.ws.requests.templates.impl.AirlyMeasurementHttpGetTemplate;
+import pl.edu.agh.defsc.ws.requests.templates.impl.HereTrafficFlowMeasurementHttpGetTemplate;
+import pl.edu.agh.defsc.ws.requests.templates.impl.OpenWeatherMeasurementHttpGetTemplate;
+import pl.edu.agh.defsc.ws.requests.templates.impl.WundergroundWeatherMeasurementHttpGetTemplate;
 
 import java.util.List;
 
@@ -92,22 +94,6 @@ public class ScheduledTasks {
 
         log.info("Update open weather items end");
     }
-
-
-    @Scheduled(fixedRate = 3600000)
-    public void updateWiosMeasurements()  {
-        log.info("Update wios measurements start");
-
-        DBCollection wiosMeasurements = mongoTemplate.getCollection(environment.getProperty("wios.air.pullution.measurements.collection.name"));
-        WiosMeasurementHttpGetTemplate template = new WiosMeasurementHttpGetTemplate(environment);
-        List<WiosSensor> loms = mongoTemplate.findAll(WiosSensor.class, environment.getProperty("wios.air.pollution.sensors.collection.name"));
-
-        processingTemplate.update(wiosMeasurements, template, wsResponseDeserializer, loms, Integer.parseInt(environment.getProperty("wios.requests.delay")));
-
-        log.info("Update wios measurements items end");
-    }
-
-
 
     @Scheduled(fixedRate = 3600000, initialDelay = 100)
     public void updateWundergroundWeatherMeasurements_1() {
